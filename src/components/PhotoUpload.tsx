@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { FaCamera, FaMapMarkerAlt, FaUpload, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -206,9 +207,11 @@ export default function PhotoUpload() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {photos.map((photo) => (
               <div key={photo.id} className="relative group">
-                <img
+                <Image
                   src={photo.preview}
                   alt="Preview"
+                  width={200}
+                  height={128}
                   className="w-full h-32 object-cover rounded-lg"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg flex items-center justify-center">

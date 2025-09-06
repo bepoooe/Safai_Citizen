@@ -1,7 +1,7 @@
 'use client';
 
 import LiveCameraCapture from '@/components/VideoRecorder';
-import { FaCamera, FaLeaf } from 'react-icons/fa';
+import { FaLeaf } from 'react-icons/fa';
 
 export default function Dashboard() {
   return (

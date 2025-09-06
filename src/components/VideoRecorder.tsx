@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { FaCamera, FaUpload, FaSpinner, FaMapMarkerAlt, FaTrash, FaCheckCircle, FaCopy, FaExternalLinkAlt, FaTimes, FaEye } from 'react-icons/fa';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -303,7 +304,7 @@ export default function LiveCameraCapture() {
             <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-white">
               <div className="text-center">
                 <FaCamera size={48} className="mx-auto mb-4 text-gray-400" />
-                <p>Click "Start Camera" to begin</p>
+                <p>Click &quot;Start Camera&quot; to begin</p>
               </div>
             </div>
           )}
@@ -361,9 +362,11 @@ export default function LiveCameraCapture() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {photos.map((photo) => (
               <div key={photo.id} className="relative group">
-                <img
+                <Image
                   src={photo.url}
                   alt="Captured"
+                  width={200}
+                  height={128}
                   className="w-full h-32 object-cover rounded-lg cursor-pointer"
                   onClick={() => setPreviewPhoto(photo)}
                 />
@@ -518,9 +521,11 @@ export default function LiveCameraCapture() {
             </div>
             <div className="p-4">
               <div className="mb-4">
-                <img
+                <Image
                   src={previewPhoto.url}
                   alt="Preview"
+                  width={600}
+                  height={400}
                   className="max-w-full max-h-96 mx-auto rounded-lg"
                 />
               </div>
