@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { FaCamera, FaMapMarkerAlt, FaUpload, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { v4 as uuidv4 } from 'uuid';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LocationData {
   latitude: number;
@@ -21,6 +22,7 @@ interface PhotoData {
 }
 
 export default function PhotoUpload() {
+  const { t } = useLanguage();
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [description, setDescription] = useState('');
@@ -83,7 +85,7 @@ export default function PhotoUpload() {
       }));
 
       setPhotos((prev) => [...prev, ...newPhotos]);
-      alert('Location access denied. Photos will be uploaded without location data.');
+      alert(t('locationAccessDenied'));
     }
   };
 
@@ -140,11 +142,11 @@ export default function PhotoUpload() {
         );
       }
       
-      alert('All photos uploaded successfully!');
+      alert(t('uploadSuccess'));
       setDescription('');
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Upload failed. Please try again.');
+      alert(t('uploadFailed'));
     } finally {
       setIsUploading(false);
     }
@@ -164,7 +166,7 @@ export default function PhotoUpload() {
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
         <FaCamera className="mr-2 text-green-600" />
-        Photo Upload Dashboard
+        {t('photoUploadDashboard')}
       </h2>
 
       {/* File Input */}
@@ -182,19 +184,19 @@ export default function PhotoUpload() {
           className="w-full py-4 px-6 border-2 border-dashed border-green-300 rounded-lg text-green-600 hover:border-green-500 hover:bg-green-50 transition-all flex items-center justify-center font-medium"
         >
           <FaCamera className="mr-2" />
-          Click to select photos or drag and drop
+          {t('clickToSelectPhotos')}
         </button>
       </div>
 
       {/* Description Input */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Description (Optional)
+          {t('descriptionOptional')}
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the cleanliness issue..."
+          placeholder={t('describeIssue')}
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           rows={3}
         />
@@ -203,7 +205,7 @@ export default function PhotoUpload() {
       {/* Photo Preview Grid */}
       {photos.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-4">Selected Photos</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('selectedPhotos')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {photos.map((photo) => (
               <div key={photo.id} className="relative group">
@@ -248,12 +250,12 @@ export default function PhotoUpload() {
           {isUploading ? (
             <>
               <FaSpinner className="mr-2 animate-spin" />
-              Uploading...
+              {t('uploading')}
             </>
           ) : (
             <>
               <FaUpload className="mr-2" />
-              Upload Photos
+              {t('uploadPhotos')}
             </>
           )}
         </button>
@@ -264,16 +266,16 @@ export default function PhotoUpload() {
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <h4 className="font-medium text-blue-800 mb-2 flex items-center">
             <FaMapMarkerAlt className="mr-2" />
-            Location Information
+            {t('locationInformation')}
           </h4>
           <p className="text-sm text-blue-600">
-            Latitude: {photos[0].location.latitude.toFixed(6)}
+            {t('latitude')}: {photos[0].location.latitude.toFixed(6)}
           </p>
           <p className="text-sm text-blue-600">
-            Longitude: {photos[0].location.longitude.toFixed(6)}
+            {t('longitude')}: {photos[0].location.longitude.toFixed(6)}
           </p>
           <p className="text-sm text-blue-600">
-            Accuracy: {photos[0].location.accuracy.toFixed(0)}m
+            {t('accuracy')}: {photos[0].location.accuracy.toFixed(0)}m
           </p>
         </div>
       )}

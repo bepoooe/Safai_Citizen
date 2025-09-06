@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { FaCamera, FaUpload, FaSpinner, FaMapMarkerAlt, FaTrash, FaCheckCircle, FaCopy, FaExternalLinkAlt, FaTimes, FaEye } from 'react-icons/fa';
 import { v4 as uuidv4 } from 'uuid';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LocationData {
   latitude: number;
@@ -22,6 +23,7 @@ interface PhotoData {
 }
 
 export default function LiveCameraCapture() {
+  const { t } = useLanguage();
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -91,7 +93,7 @@ export default function LiveCameraCapture() {
 
     } catch (error) {
       console.error('Error starting camera:', error);
-      alert('Failed to access camera. Please check permissions.');
+      alert(t('cameraAccessFailed'));
     }
   };
 
@@ -208,7 +210,7 @@ export default function LiveCameraCapture() {
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'safai_citizen';
     
     if (!cloudName || cloudName === 'your_cloudinary_cloud_name') {
-      alert('Cloudinary not configured! Please set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME in your .env.local file with your actual Cloudinary cloud name.');
+      alert(t('cloudinaryNotConfigured'));
       return;
     }
 
@@ -232,11 +234,11 @@ export default function LiveCameraCapture() {
         console.log(`Photo ${photo.id} uploaded successfully. Cloudinary URL: ${cloudinaryUrl}`);
       }
       
-      alert(`${unuploadedPhotos.length} photo(s) uploaded successfully!`);
+      alert(`${unuploadedPhotos.length} ${t('uploadSuccess')}`);
       setDescription('');
     } catch (error) {
       console.error('Upload error:', error);
-      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
+      alert(`${t('uploadFailed')}: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
     } finally {
       setIsUploading(false);
     }
@@ -266,7 +268,7 @@ export default function LiveCameraCapture() {
   const copyUrlsToClipboard = () => {
     const uploadedPhotos = getUploadedPhotoUrls();
     if (uploadedPhotos.length === 0) {
-      alert('No uploaded photos found!');
+      alert(t('noUploadedPhotos'));
       return;
     }
     
@@ -275,7 +277,7 @@ export default function LiveCameraCapture() {
     ).join('\n');
     
     navigator.clipboard.writeText(urlText).then(() => {
-      alert('Photo URLs copied to clipboard!');
+      alert(t('photoUrlsCopied'));
     }).catch(() => {
       alert('Failed to copy URLs to clipboard');
     });
@@ -285,7 +287,7 @@ export default function LiveCameraCapture() {
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
         <FaCamera className="mr-2 text-green-600" />
-        Live Camera Capture
+        {t('liveCameraCapture')}
       </h2>
 
       {/* Camera Preview */}
@@ -304,7 +306,7 @@ export default function LiveCameraCapture() {
             <div className="absolute inset-0 flex items-center justify-center bg-gray-800 text-white">
               <div className="text-center">
                 <FaCamera size={48} className="mx-auto mb-4 text-gray-400" />
-                <p>Click &quot;Start Camera&quot; to begin</p>
+                <p>{t('clickToStart')}</p>
               </div>
             </div>
           )}
@@ -344,12 +346,12 @@ export default function LiveCameraCapture() {
       {/* Description Input */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Description (Optional)
+          {t('descriptionOptional')}
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Describe the cleanliness issue..."
+          placeholder={t('describeIssue')}
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           rows={3}
         />
@@ -358,7 +360,7 @@ export default function LiveCameraCapture() {
       {/* Captured Photos */}
       {photos.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-4">Captured Photos</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('capturedPhotos')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {photos.map((photo) => (
               <div key={photo.id} className="relative group">
@@ -375,14 +377,14 @@ export default function LiveCameraCapture() {
                     <button
                       onClick={() => setPreviewPhoto(photo)}
                       className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition-all"
-                      title="Preview"
+                      title={t('preview')}
                     >
                       <FaEye />
                     </button>
                     <button
                       onClick={() => removePhoto(photo.id)}
                       className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all"
-                      title="Delete"
+                      title={t('delete')}
                     >
                       <FaTrash />
                     </button>
@@ -408,13 +410,13 @@ export default function LiveCameraCapture() {
       {photos.some((photo) => photo.uploaded && photo.cloudinaryUrl) && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Uploaded Photos & URLs</h3>
+            <h3 className="text-lg font-semibold">{t('uploadedPhotosUrls')}</h3>
             <button
               onClick={copyUrlsToClipboard}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center"
             >
               <FaCopy className="mr-2" />
-              Copy URLs
+              {t('copyUrls')}
             </button>
           </div>
           <div className="space-y-3">
@@ -427,7 +429,7 @@ export default function LiveCameraCapture() {
                       <div className="flex items-center mb-2">
                         <FaCheckCircle className="text-green-600 mr-2" />
                         <span className="text-sm font-medium text-green-800">
-                          Uploaded at {photo.timestamp.toLocaleString()}
+                          {t('uploaded')} at {photo.timestamp.toLocaleString()}
                         </span>
                       </div>
                       <div className="bg-white p-3 rounded border">
@@ -439,14 +441,14 @@ export default function LiveCameraCapture() {
                             <button
                               onClick={() => navigator.clipboard.writeText(photo.cloudinaryUrl!)}
                               className="text-blue-600 hover:text-blue-800 p-1"
-                              title="Copy URL"
+                              title={t('copyUrl')}
                             >
                               <FaCopy size={14} />
                             </button>
                             <button
                               onClick={() => window.open(photo.cloudinaryUrl!, '_blank')}
                               className="text-green-600 hover:text-green-800 p-1"
-                              title="Open in new tab"
+                              title={t('openInNewTab')}
                             >
                               <FaExternalLinkAlt size={14} />
                             </button>
@@ -455,7 +457,7 @@ export default function LiveCameraCapture() {
                       </div>
                       {photo.location && (
                         <div className="mt-2 text-xs text-gray-500">
-                          📍 Location: {photo.location.latitude.toFixed(6)}, {photo.location.longitude.toFixed(6)}
+                          📍 {t('currentLocation')}: {photo.location.latitude.toFixed(6)}, {photo.location.longitude.toFixed(6)}
                         </div>
                       )}
                     </div>
@@ -476,12 +478,12 @@ export default function LiveCameraCapture() {
           {isUploading ? (
             <>
               <FaSpinner className="mr-2 animate-spin" />
-              Uploading...
+              {t('uploading')}
             </>
           ) : (
             <>
               <FaUpload className="mr-2" />
-              Upload Photos
+              {t('uploadPhotos')}
             </>
           )}
         </button>
@@ -492,16 +494,16 @@ export default function LiveCameraCapture() {
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <h4 className="font-medium text-blue-800 mb-2 flex items-center">
             <FaMapMarkerAlt className="mr-2" />
-            Current Location
+            {t('currentLocation')}
           </h4>
           <p className="text-sm text-blue-600">
-            Latitude: {currentLocation.latitude.toFixed(6)}
+            {t('latitude')}: {currentLocation.latitude.toFixed(6)}
           </p>
           <p className="text-sm text-blue-600">
-            Longitude: {currentLocation.longitude.toFixed(6)}
+            {t('longitude')}: {currentLocation.longitude.toFixed(6)}
           </p>
           <p className="text-sm text-blue-600">
-            Accuracy: {currentLocation.accuracy.toFixed(0)}m
+            {t('accuracy')}: {currentLocation.accuracy.toFixed(0)}m
           </p>
         </div>
       )}
@@ -511,7 +513,7 @@ export default function LiveCameraCapture() {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl max-h-full overflow-auto">
             <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="text-lg font-semibold">Photo Preview</h3>
+              <h3 className="text-lg font-semibold">{t('photoPreview')}</h3>
               <button
                 onClick={() => setPreviewPhoto(null)}
                 className="text-gray-500 hover:text-gray-700 p-2"
@@ -531,13 +533,13 @@ export default function LiveCameraCapture() {
               </div>
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-center">
-                  <strong className="mr-2">Captured:</strong>
+                  <strong className="mr-2">{t('captured')}:</strong>
                   {previewPhoto.timestamp.toLocaleString()}
                 </div>
                 {previewPhoto.location && (
                   <div className="flex items-center">
                     <FaMapMarkerAlt className="mr-2 text-blue-600" />
-                    <strong className="mr-2">Location:</strong>
+                    <strong className="mr-2">{t('currentLocation')}:</strong>
                     <span>
                       {previewPhoto.location.latitude.toFixed(6)}, {previewPhoto.location.longitude.toFixed(6)}
                       <span className="ml-2 text-xs">
@@ -547,32 +549,32 @@ export default function LiveCameraCapture() {
                   </div>
                 )}
                 <div className="flex items-center">
-                  <strong className="mr-2">Status:</strong>
+                  <strong className="mr-2">{t('status')}:</strong>
                   {previewPhoto.uploaded ? (
                     <span className="text-green-600 flex items-center">
                       <FaCheckCircle className="mr-1" />
-                      Uploaded
+                      {t('uploaded')}
                     </span>
                   ) : (
-                    <span className="text-orange-600">Pending Upload</span>
+                    <span className="text-orange-600">{t('pendingUpload')}</span>
                   )}
                 </div>
                 {previewPhoto.cloudinaryUrl && (
                   <div className="flex items-center">
-                    <strong className="mr-2">Cloudinary URL:</strong>
+                    <strong className="mr-2">{t('cloudinaryUrl')}:</strong>
                     <div className="flex items-center space-x-2">
                       <span className="text-blue-600 break-all">{previewPhoto.cloudinaryUrl}</span>
                       <button
                         onClick={() => navigator.clipboard.writeText(previewPhoto.cloudinaryUrl!)}
                         className="text-blue-600 hover:text-blue-800 p-1"
-                        title="Copy URL"
+                        title={t('copyUrl')}
                       >
                         <FaCopy size={14} />
                       </button>
                       <button
                         onClick={() => window.open(previewPhoto.cloudinaryUrl!, '_blank')}
                         className="text-green-600 hover:text-green-800 p-1"
-                        title="Open in new tab"
+                        title={t('openInNewTab')}
                       >
                         <FaExternalLinkAlt size={14} />
                       </button>
@@ -586,13 +588,13 @@ export default function LiveCameraCapture() {
                   className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center"
                 >
                   <FaTrash className="mr-2" />
-                  Delete Photo
+                  {t('deletePhoto')}
                 </button>
                 <button
                   onClick={() => setPreviewPhoto(null)}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg"
                 >
-                  Close
+                  {t('close')}
                 </button>
               </div>
             </div>
