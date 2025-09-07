@@ -214,7 +214,6 @@ export default function LiveCameraCapture() {
 
     // Check environment variables first
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'safai_citizen';
     
     if (!cloudName || cloudName === 'your_cloudinary_cloud_name') {
       alert(t('cloudinaryNotConfigured'));

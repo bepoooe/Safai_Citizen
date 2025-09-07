@@ -169,7 +169,7 @@ export default function PhotoUpload() {
       setName('');
     } catch (error) {
       console.error('Upload error:', error);
-      alert(`Upload failed: ${error.message || error}`);
+      alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsUploading(false);
     }
