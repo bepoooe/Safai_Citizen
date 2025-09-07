@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { FaCamera, FaMapMarkerAlt, FaUpload, FaSpinner, FaCheckCircle } from 'react-icons/fa';
 import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { addCivilianReport } from '@/lib/firestore';
 
 interface LocationData {
   latitude: number;
@@ -26,6 +27,7 @@ export default function PhotoUpload() {
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [description, setDescription] = useState('');
+  const [name, setName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getCurrentLocation = (): Promise<LocationData> => {
@@ -130,11 +132,31 @@ export default function PhotoUpload() {
     const unuploadedPhotos = photos.filter((photo) => !photo.uploaded);
     if (unuploadedPhotos.length === 0) return;
 
+    if (!name.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
     setIsUploading(true);
     
     try {
       for (const photo of unuploadedPhotos) {
-        await uploadToCloudinary(photo);
+        const imageUrl = await uploadToCloudinary(photo);
+        
+        // Save to Firestore
+        const reportData = {
+          imageUrl,
+          name: name.trim(),
+          location: {
+            latitude: photo.location?.latitude || 0,
+            longitude: photo.location?.longitude || 0,
+            accuracy: photo.location?.accuracy,
+          },
+          description: description.trim()
+        };
+        
+        await addCivilianReport(reportData);
+        
         setPhotos((prev) =>
           prev.map((p) =>
             p.id === photo.id ? { ...p, uploaded: true } : p
@@ -144,9 +166,10 @@ export default function PhotoUpload() {
       
       alert(t('uploadSuccess'));
       setDescription('');
+      setName('');
     } catch (error) {
       console.error('Upload error:', error);
-      alert(t('uploadFailed'));
+      alert(`Upload failed: ${error.message || error}`);
     } finally {
       setIsUploading(false);
     }
@@ -187,6 +210,22 @@ export default function PhotoUpload() {
           {t('clickToSelectPhotos')}
         </button>
       </div>
+
+      {/* Name Input */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Your Name *
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your name"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          required
+        />
+      </div>
+
 
       {/* Description Input */}
       <div className="mb-6">

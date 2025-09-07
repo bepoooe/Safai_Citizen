@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { FaCamera, FaUpload, FaSpinner, FaMapMarkerAlt, FaTrash, FaCheckCircle, FaCopy, FaExternalLinkAlt, FaTimes, FaEye } from 'react-icons/fa';
 import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { addCivilianReport } from '@/lib/firestore';
 
 interface LocationData {
   latitude: number;
@@ -28,6 +29,7 @@ export default function LiveCameraCapture() {
   const [photos, setPhotos] = useState<PhotoData[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [description, setDescription] = useState('');
+  const [name, setName] = useState('');
   const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<PhotoData | null>(null);
 
@@ -205,6 +207,11 @@ export default function LiveCameraCapture() {
     const unuploadedPhotos = photos.filter((photo) => !photo.uploaded);
     if (unuploadedPhotos.length === 0) return;
 
+    if (!name.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
     // Check environment variables first
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'safai_citizen';
@@ -214,14 +221,26 @@ export default function LiveCameraCapture() {
       return;
     }
 
-    console.log('Upload configuration:', { cloudName, uploadPreset });
-
     setIsUploading(true);
     
     try {
       for (const photo of unuploadedPhotos) {
-        console.log('Uploading photo:', photo.id, 'Size:', photo.blob.size, 'bytes');
         const cloudinaryUrl = await uploadToCloudinary(photo);
+        
+        // Save to Firestore
+        const reportData = {
+          imageUrl: cloudinaryUrl,
+          name: name.trim(),
+          location: {
+            latitude: photo.location?.latitude || 0,
+            longitude: photo.location?.longitude || 0,
+            accuracy: photo.location?.accuracy,
+          },
+          description: description.trim()
+        };
+        
+        await addCivilianReport(reportData);
+        
         setPhotos((prev) =>
           prev.map((p) =>
             p.id === photo.id ? { 
@@ -231,11 +250,11 @@ export default function LiveCameraCapture() {
             } : p
           )
         );
-        console.log(`Photo ${photo.id} uploaded successfully. Cloudinary URL: ${cloudinaryUrl}`);
       }
       
       alert(`${unuploadedPhotos.length} ${t('uploadSuccess')}`);
       setDescription('');
+      setName('');
     } catch (error) {
       console.error('Upload error:', error);
       alert(`${t('uploadFailed')}: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
@@ -369,6 +388,22 @@ export default function LiveCameraCapture() {
 
       {/* Hidden canvas for photo capture */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+      {/* Name Input */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Your Name *
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your name"
+          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
+          required
+        />
+      </div>
+
 
       {/* Description Input */}
       <div className="mb-4 sm:mb-6">
